@@ -1,0 +1,23 @@
+The journal matrix for the (Microsoft) MAG_20150205 data is in `python/scripts/mag_venue_sparse.mtx`
+
+Python code to load the matrix:
+```
+import scipy.io
+from scipy.sparse import csr_matrix, coo_matrix
+venue_matrix = scipy.io.mmread("venue_matrix_filename")
+venue_matrix = venue_matrix.tocsr()
+```
+
+The journal IDs are located in `python/scripts/journal_list.csv`. This is a
+comma separated list of journal and conference IDs representing labels for the
+rows and columns of the journal matrix. Journals are prepended with the letter 'A',
+and conferences are prepended with the letter 'B'.
+
+The `MAG_20150205.Journals` database table maps Journal IDs to names (you need to 
+strip the 'A' from the Journal ID in the file above).
+
+The `MAG_20150205.ConferenceInstances` database table maps Conference IDs to
+names (you need to strip the 'B' from the Conference ID in the file above).
+
+The `Papers` table might also be useful, as it has a column for normalized venue name 
+(presumably identified before Microsoft mapped the venue to a Journal or Conference ID).
