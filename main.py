@@ -2,22 +2,49 @@ import csv
 import scipy.io
 from scipy.sparse import csr_matrix, coo_matrix
 with open("data/journal_list.csv", "r") as f:
-    names_in_matrix = next(csv.reader(f))
+    ids_in_matrix = next(csv.reader(f))
 
+id_to_name = {}
+with open("data/journal_names.tsv") as f:
+    id_to_name = {i: j for (i,j) in csv.reader(f, dialect=csv.excel_tab)}
+        
 venue_matrix = scipy.io.mmread("./data/mag_venue_sparse.mtx").tocsr()
 print venue_matrix.shape
 it_mtx = coo_matrix(venue_matrix)
 old_row = 0
 row_sum = 0
-name_to_citations = {}
+id_to_citations = {}
 for row,col,data in zip(it_mtx.row, it_mtx.col, it_mtx.data):
-    if names_in_matrix[row][0] == "B":
+    if ids_in_matrix[row][0] == "B":
         continue
     if row == old_row:
         row_sum += data
     else:
-        name_to_citations[names_in_matrix[row-1]] = row_sum
+        id_to_citations[ids_in_matrix[row-1][1:]] = row_sum
         row_sum = data
         old_row = row
-for key in name_to_citations:
-    print str(key) + ": " + str(name_to_citations[key])
+
+# catching final journal edge case
+id_to_citations[ids_in_matrix[row-1][1:]] = row_sum
+
+name_to_citations = {}
+for key in id_to_citations:
+    if key in id_to_name:
+        name_to_citations[id_to_name[key]] = id_to_citations[key]
+
+name_to_ai = {}
+with open("./data/journals_EF_AI_2014.txt") as f:
+    for row in csv.reader(f, dialect=csv.excel_tab):
+        print row 
+        name_to_ai[row[3]] = row[15]
+valid_count = 0
+no_ai_count = 0
+for name in name_to_citations:
+    if name in name_to_ai:
+        valid_count += 1
+        print name
+    else:
+        no_ai_count += 1
+
+print "For training: " + str(valid_count)
+print "To be predicted: " + str(no_ai_count)
